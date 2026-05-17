@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineAI — Discover Films</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg:        #07090f;
+            --bg-card:   #0d1220;
+            --bg-hover:  #111827;
+            --border:    rgba(255,255,255,0.06);
+            --gold:      #f5c518;
+            --blue:      #2979ff;
+            --red:       #e53935;
+            --text:      #eef2ff;
+            --muted:     #64748b;
+            --sub:       #94a3b8;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: sticky; top: 0; z-index: 200;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 48px; height: 62px;
+            background: rgba(7,9,15,0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-left { display: flex; align-items: center; gap: 32px; }
+
+        .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .logo-icon {
+            width: 32px; height: 32px; border-radius: 7px;
+            background: linear-gradient(135deg, var(--blue), #7c3aed);
+            display: flex; align-items: center; justify-content: center; font-size: 16px;
+        }
+        .logo-text {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 22px; letter-spacing: 2.5px; color: var(--text);
+        }
+        .logo-text span { color: var(--gold); }
+
+        .nav-search {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px; padding: 7px 14px;
+            width: 260px; transition: border-color 0.2s;
+        }
+        .nav-search:focus-within { border-color: rgba(41,121,255,0.5); }
+        .nav-search input {
+            background: none; border: none; outline: none;
+            color: var(--text); font-family: 'DM Sans', sans-serif;
+            font-size: 13px; width: 100%;
+        }
+        .nav-search input::placeholder { color: var(--muted); }
+        .search-icon { color: var(--muted); font-size: 14px; }
+
+        .nav-right { display: flex; align-items: center; gap: 14px; }
+
+        .nav-user { display: flex; align-items: center; gap: 9px; }
+        .nav-avatar {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: linear-gradient(135deg, #2979ff, #7c3aed);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700;
+        }
+        .nav-username {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--sub);
+        }
+
+        .logout-btn {
+            padding: 6px 16px; border-radius: 7px;
+            border: 1px solid rgba(229,57,53,0.4);
+            color: var(--red); background: transparent;
+            font-family: 'DM Sans', sans-serif; font-size: 12px;
+            cursor: pointer; text-decoration: none;
+            transition: background 0.2s;
+        }
+        .logout-btn:hover { background: rgba(229,57,53,0.1); }
+
+        /* ── HERO ── */
+        .hero {
+            position: relative; height: 520px; overflow: hidden;
+            cursor: pointer;
+        }
+        .hero-bg {
+            position: absolute; inset: 0;
+            background: url('https://images.unsplash.com/photo-1512070679279-8988d32161be?w=1600&q=80') center/cover;
+            filter: brightness(0.3) saturate(1.3);
+            transform: scale(1.04);
+            animation: hzoom 20s ease-in-out infinite alternate;
+        }
+        @keyframes hzoom {
+            from { transform: scale(1.04); }
+            to   { transform: scale(1.10); }
+        }
+        .hero-grad {
+            position: absolute; inset: 0;
+            background: linear-gradient(to right,
+                rgba(7,9,15,0.95) 0%,
+                rgba(7,9,15,0.6) 45%,
+                rgba(7,9,15,0.1) 100%);
+        }
+        .hero-grad-b {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 180px;
+            background: linear-gradient(to bottom, transparent, var(--bg));
+        }
+        .hero-content {
+            position: relative; height: 100%;
+            display: flex; align-items: center;
+            padding: 0 64px;
+        }
+        .hero-inner { max-width: 560px; }
+        .hero-label {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: var(--gold); color: #000;
+            font-size: 10px; font-weight: 800; letter-spacing: 1.5px;
+            padding: 4px 10px; border-radius: 4px;
+            margin-bottom: 16px; text-transform: uppercase;
+        }
+        .hero-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(42px, 6vw, 72px);
+            letter-spacing: 2px; line-height: 0.95;
+            margin-bottom: 16px;
+        }
+        .hero-meta {
+            display: flex; align-items: center; gap: 16px;
+            margin-bottom: 18px;
+        }
+        .hero-rating {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 15px; font-weight: 700; color: var(--gold);
+        }
+        .hero-dot { color: var(--muted); }
+        .hero-info { font-size: 13px; color: var(--sub); }
+        .hero-desc {
+            font-size: 14px; color: var(--sub); line-height: 1.65;
+            margin-bottom: 24px; max-width: 420px;
+        }
+        .hero-actions { display: flex; gap: 12px; }
+        .btn-primary {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--gold); color: #000;
+            padding: 11px 24px; border-radius: 9px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px; font-weight: 700;
+            cursor: pointer; border: none;
+            transition: opacity 0.2s, transform 0.15s;
+            text-decoration: none;
+        }
+        .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+        .btn-ghost {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--text); padding: 11px 24px; border-radius: 9px;
+            font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+            cursor: pointer; text-decoration: none;
+            backdrop-filter: blur(8px);
+            transition: background 0.2s;
+        }
+        .btn-ghost:hover { background: rgba(255,255,255,0.14); }
+
+        /* ── QUICK FILTERS ── */
+        .filters-bar {
+            padding: 0 48px;
+            display: flex; align-items: center; gap: 10px;
+            margin: 32px 0 28px;
+            overflow-x: auto;
+        }
+        .filters-bar::-webkit-scrollbar { display: none; }
+        .filter-chip {
+            flex-shrink: 0;
+            padding: 7px 18px; border-radius: 99px;
+            border: 1px solid var(--border);
+            background: transparent; color: var(--sub);
+            font-family: 'DM Sans', sans-serif; font-size: 13px;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .filter-chip:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+        .filter-chip.active {
+            background: var(--gold); color: #000;
+            border-color: var(--gold); font-weight: 600;
+        }
+
+        /* ── SECTION ── */
+        .section { padding: 0 48px; margin-bottom: 48px; }
+
+        .section-header {
+            display: flex; align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 22px; color: var(--text);
+        }
+        .section-title span { color: var(--gold); font-style: italic; }
+        .section-more {
+            font-size: 13px; color: var(--blue);
+            cursor: pointer; text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        .section-more:hover { opacity: 0.7; }
+
+        /* ── MOVIE GRID ── */
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+            gap: 20px;
+        }
+
+        .movie-card {
+            cursor: pointer;
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .movie-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            border-color: rgba(255,255,255,0.14);
+        }
+
+        .movie-poster {
+            position: relative;
+            width: 100%; aspect-ratio: 2/3;
+            background: linear-gradient(135deg, #0d1220, #1a2540);
+            overflow: hidden;
+        }
+        .movie-poster img {
+            width: 100%; height: 100%; object-fit: cover;
+            transition: transform 0.4s;
+        }
+        .movie-card:hover .movie-poster img { transform: scale(1.06); }
+
+        .poster-rank {
+            position: absolute; top: 8px; left: 8px;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(6px);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 18px; letter-spacing: 1px;
+            color: var(--gold);
+            padding: 2px 8px; border-radius: 5px;
+        }
+        .poster-rating {
+            position: absolute; bottom: 8px; right: 8px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(6px);
+            display: flex; align-items: center; gap: 4px;
+            padding: 3px 8px; border-radius: 5px;
+            font-size: 12px; font-weight: 700; color: var(--gold);
+        }
+        .poster-overlay {
+            position: absolute; inset: 0;
+            background: rgba(0,0,0,0);
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.3s;
+        }
+        .movie-card:hover .poster-overlay { background: rgba(0,0,0,0.35); }
+        .play-icon {
+            width: 44px; height: 44px; border-radius: 50%;
+            background: rgba(245,197,24,0.9);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; opacity: 0;
+            transform: scale(0.7);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        .movie-card:hover .play-icon { opacity: 1; transform: scale(1); }
+
+        .movie-info { padding: 12px 14px 14px; }
+        .movie-title {
+            font-size: 13px; font-weight: 600;
+            color: var(--text); line-height: 1.4;
+            margin-bottom: 5px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .movie-year { font-size: 11px; color: var(--muted); margin-bottom: 7px; }
+        .movie-genres {
+            display: flex; flex-wrap: wrap; gap: 4px;
+        }
+        .genre-tag {
+            font-size: 10px; padding: 2px 7px; border-radius: 4px;
+            background: rgba(41,121,255,0.1);
+            border: 1px solid rgba(41,121,255,0.2);
+            color: #7ba8ff;
+        }
+
+        /* ── ROW CAROUSEL (Featured today style) ── */
+        .movie-row {
+            display: flex; gap: 16px;
+            overflow-x: auto; padding-bottom: 8px;
+        }
+        .movie-row::-webkit-scrollbar { height: 3px; }
+        .movie-row::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 99px; }
+        .movie-row .movie-card { flex: 0 0 160px; }
+        .movie-row .movie-poster { aspect-ratio: 16/9; }
+
+        /* ── FEATURED BANNER ── */
+        .featured-banner {
+            margin: 0 48px 40px;
+            border-radius: 16px; overflow: hidden;
+            position: relative; height: 180px;
+            background: linear-gradient(135deg, #0a1628, #1a2540);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .featured-banner:hover { opacity: 0.9; }
+        .featured-banner-bg {
+            position: absolute; inset: 0;
+            background: url('https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=1200&q=80') center/cover;
+            opacity: 0.25;
+        }
+        .featured-banner-content {
+            position: relative; padding: 28px 36px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .banner-text h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 28px; letter-spacing: 2px;
+            margin-bottom: 6px;
+        }
+        .banner-text p { font-size: 13px; color: var(--sub); }
+
+        /* ── FOOTER ── */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 28px 48px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; color: var(--muted); }
+        .footer-logo span { color: var(--gold); }
+        .footer-text { font-size: 12px; color: var(--muted); }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            nav { padding: 0 20px; }
+            .nav-search { display: none; }
+            .hero-content { padding: 0 24px; }
+            .section { padding: 0 20px; }
+            .filters-bar { padding: 0 20px; }
+            .featured-banner { margin: 0 20px 32px; }
+            footer { padding: 20px; flex-direction: column; gap: 8px; text-align: center; }
+            .movie-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+    <div class="nav-left">
+        <a href="/" class="logo">
+            <div class="logo-icon">🎬</div>
+            <span class="logo-text">CINE<span>AI</span></span>
+        </a>
+        <div class="nav-search">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Search films, directors…" oninput="filterMovies()">
+        </div>
+    </div>
+    <div class="nav-right">
+        <div class="nav-username">
+            <div class="nav-avatar" id="navAvatar">
+                 {{ session.get('user', 'G')[0] | upper }}
+            </div>
+            <span id="navUsername">{{ session.get('user', 'Guest') }}</span>
+        </div>
+        {% if session.get('user') %}
+
+            <a href="/logout" class="logout-btn">
+                Logout
+            </a>
+
+        {% else %}
+
+            <a href="/login" class="logout-btn">
+                Login
+            </a>
+
+        {% endif %}
+    </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero" onclick="goToMovie(0)">
+    <div class="hero-bg"></div>
+    <div class="hero-grad"></div>
+    <div class="hero-grad-b"></div>
+    <div class="hero-content">
+        <div class="hero-inner">
+            <div class="hero-label">⭐ Featured Film</div>
+            <div class="hero-title">The Dark<br>Knight</div>
+            <div class="hero-meta">
+                <div class="hero-rating">★ 9.0</div>
+                <span class="hero-dot">·</span>
+                <span class="hero-info">2h 32min</span>
+                <span class="hero-dot">·</span>
+                <span class="hero-info">2008</span>
+                <span class="hero-dot">·</span>
+                <span class="hero-info">Action · Crime</span>
+            </div>
+            <p class="hero-desc">When the Joker wreaks havoc on Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.</p>
+            <div class="hero-actions">
+                <a class="btn-primary" onclick="goToMovie(0); return false;" href="#">▶ View & Review</a>
+                <a class="btn-ghost" href="#">+ Watchlist</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters-bar">
+    <button class="filter-chip active" onclick="setFilter('All', this)">All</button>
+    <button class="filter-chip" onclick="setFilter('Action', this)">Action</button>
+    <button class="filter-chip" onclick="setFilter('Drama', this)">Drama</button>
+    <button class="filter-chip" onclick="setFilter('Thriller', this)">Thriller</button>
+    <button class="filter-chip" onclick="setFilter('Crime', this)">Crime</button>
+    <button class="filter-chip" onclick="setFilter('Sci-Fi', this)">Sci-Fi</button>
+    <button class="filter-chip" onclick="setFilter('Comedy', this)">Comedy</button>
+    <button class="filter-chip" onclick="setFilter('Horror', this)">Horror</button>
+    <button class="filter-chip" onclick="setFilter('Romance', this)">Romance</button>
+</div>
+
+<!-- TOP RATED -->
+<div class="section">
+    <div class="section-header">
+        <div class="section-title">Top <span>Rated</span></div>
+        <a class="section-more" href="#">See all →</a>
+    </div>
+    <div class="movie-grid" id="movieGrid"></div>
+</div>
+
+<!-- FEATURED BANNER -->
+<div class="featured-banner" onclick="goToMovie(5)">
+    <div class="featured-banner-bg"></div>
+    <div class="featured-banner-content">
+        <div class="banner-text">
+            <h3>🏆 Award Season Picks</h3>
+            <p>Critics' top selections — reviewed & rated by our community</p>
+        </div>
+        <a class="btn-primary" style="flex-shrink:0" href="#">Explore →</a>
+    </div>
+</div>
+
+<!-- RECENTLY ADDED -->
+<div class="section">
+    <div class="section-header">
+        <div class="section-title">Recently <span>Added</span></div>
+        <a class="section-more" href="#">See all →</a>
+    </div>
+    <div class="movie-row" id="recentRow"></div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-logo">CINE<span>AI</span></div>
+    <div class="footer-text">© 2026 CineAI · Powered by AI Sentiment Analysis</div>
+</footer>
+
+<script>
+// ── Movie Data ──
+const MOVIES = [
+    {
+        id: 0,
+        title: "The Dark Knight",
+        year: 2008,
+        duration: "2h 32min",
+        director: "Christopher Nolan",
+        cast: "Christian Bale, Heath Ledger, Aaron Eckhart, Maggie Gyllenhaal",
+        genres: ["Action", "Crime", "Drama"],
+        rating: 9.0,
+        plot: "When the Joker wreaks havoc on Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.",
+        poster: "https://images.unsplash.com/photo-1531259683007-016a7b628fc3?w=400&q=80"
+    },
+    {
+        id: 1,
+        title: "Inception",
+        year: 2010,
+        duration: "2h 28min",
+        director: "Christopher Nolan",
+        cast: "Leonardo DiCaprio, Joseph Gordon-Levitt, Elliot Page, Tom Hardy",
+        genres: ["Action", "Sci-Fi", "Thriller"],
+        rating: 8.8,
+        plot: "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+        poster: "https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=400&q=80"
+    },
+    {
+        id: 2,
+        title: "Interstellar",
+        year: 2014,
+        duration: "2h 49min",
+        director: "Christopher Nolan",
+        cast: "Matthew McConaughey, Anne Hathaway, Jessica Chastain, Michael Caine",
+        genres: ["Sci-Fi", "Drama"],
+        rating: 8.7,
+        plot: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
+        poster: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=400&q=80"
+    },
+    {
+        id: 3,
+        title: "Parasite",
+        year: 2019,
+        duration: "2h 12min",
+        director: "Bong Joon-ho",
+        cast: "Song Kang-ho, Lee Sun-kyun, Cho Yeo-jeong, Choi Woo-shik",
+        genres: ["Drama", "Thriller", "Crime"],
+        rating: 8.5,
+        plot: "Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.",
+        poster: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400&q=80"
+    },
+    {
+        id: 4,
+        title: "John Wick: Chapter 3",
+        year: 2019,
+        duration: "2h 10min",
+        director: "Chad Stahelski",
+        cast: "Keanu Reeves, Halle Berry, Ian McShane, Laurence Fishburne",
+        genres: ["Action", "Thriller", "Crime"],
+        rating: 7.4,
+        plot: "Super-assassin John Wick is on the run after killing a member of the international assassin's guild, and with a $14 million price tag on his head.",
+        poster: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=80"
+    },
+    {
+        id: 5,
+        title: "Oppenheimer",
+        year: 2023,
+        duration: "3h 0min",
+        director: "Christopher Nolan",
+        cast: "Cillian Murphy, Emily Blunt, Matt Damon, Robert Downey Jr.",
+        genres: ["Drama", "Thriller"],
+        rating: 8.3,
+        plot: "The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb during World War II.",
+        poster: "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=400&q=80"
+    },
+    {
+        id: 6,
+        title: "The Shawshank Redemption",
+        year: 1994,
+        duration: "2h 22min",
+        director: "Frank Darabont",
+        cast: "Tim Robbins, Morgan Freeman, Bob Gunton, William Sadler",
+        genres: ["Drama", "Crime"],
+        rating: 9.3,
+        plot: "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
+        poster: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=80"
+    },
+    {
+        id: 7,
+        title: "Pulp Fiction",
+        year: 1994,
+        duration: "2h 34min",
+        director: "Quentin Tarantino",
+        cast: "John Travolta, Uma Thurman, Samuel L. Jackson, Bruce Willis",
+        genres: ["Crime", "Drama", "Thriller"],
+        rating: 8.9,
+        plot: "The lives of two mob hitmen, a boxer, a gangster and his wife intertwine in four tales of violence and redemption.",
+        poster: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&q=80"
+    },
+    {
+        id: 8,
+        title: "Avengers: Endgame",
+        year: 2019,
+        duration: "3h 1min",
+        director: "Russo Brothers",
+        cast: "Robert Downey Jr., Chris Evans, Scarlett Johansson, Josh Brolin",
+        genres: ["Action", "Sci-Fi"],
+        rating: 8.4,
+        plot: "After the devastating events of Avengers: Infinity War, the universe is in ruins. The Avengers assemble once more to reverse Thanos' actions.",
+        poster: "https://images.unsplash.com/photo-1635805737707-575885ab0820?w=400&q=80"
+    },
+    {
+        id: 9,
+        title: "Get Out",
+        year: 2017,
+        duration: "1h 44min",
+        director: "Jordan Peele",
+        cast: "Daniel Kaluuya, Allison Williams, Bradley Whitford, Catherine Keener",
+        genres: ["Horror", "Thriller"],
+        rating: 7.7,
+        plot: "A young African-American visits his white girlfriend's parents for the weekend, where his simmering uneasiness about their perfect family grows into a terrifying reality.",
+        poster: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&q=80"
+    },
+    {
+        id: 10,
+        title: "La La Land",
+        year: 2016,
+        duration: "2h 8min",
+        director: "Damien Chazelle",
+        cast: "Ryan Gosling, Emma Stone, John Legend, Rosemarie DeWitt",
+        genres: ["Drama", "Romance", "Comedy"],
+        rating: 8.0,
+        plot: "While navigating their careers in Los Angeles, a pianist and an aspiring actress fall in love while attempting to reconcile their aspirations for the future.",
+        poster: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80"
+    },
+    {
+        id: 11,
+        title: "Dune",
+        year: 2021,
+        duration: "2h 35min",
+        director: "Denis Villeneuve",
+        cast: "Timothée Chalamet, Zendaya, Rebecca Ferguson, Oscar Isaac",
+        genres: ["Sci-Fi", "Action", "Drama"],
+        rating: 8.0,
+        plot: "A noble family becomes embroiled in a war for control over the galaxy's most valuable asset while its heir becomes troubled by visions of a dark future.",
+        poster: "https://images.unsplash.com/photo-1462332420958-a05d1e002413?w=400&q=80"
+    }
+];
+
+let activeFilter = 'All';
+let filteredMovies = [...MOVIES];
+
+// ── Nav ──
+
+
+// ── Filter ──
+function setFilter(genre, el) {
+    activeFilter = genre;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    applyFilter();
+}
+
+function applyFilter() {
+    const q = (document.getElementById('searchInput').value || '').toLowerCase();
+    filteredMovies = MOVIES.filter(m => {
+        const matchGenre = activeFilter === 'All' || m.genres.includes(activeFilter);
+        const matchSearch = !q || m.title.toLowerCase().includes(q) || m.director.toLowerCase().includes(q);
+        return matchGenre && matchSearch;
+    });
+    renderGrid();
+}
+
+function filterMovies() { applyFilter(); }
+
+// ── Navigate ──
+function goToMovie(id) {
+    window.location.href = '/movie?movie_id=' + id;
+    
+}
+
+// ── Render Grid ──
+function renderGrid() {
+    const grid = document.getElementById('movieGrid');
+    if (filteredMovies.length === 0) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--muted)">No films found 🎬</div>`;
+        return;
+    }
+    grid.innerHTML = filteredMovies.map((m, i) => `
+        <a class="movie-card" href="#" onclick="goToMovie(${m.id}); return false;">
+            <div class="movie-poster">
+                <img src="${m.poster}" alt="${m.title}" loading="lazy"
+                     onerror="this.style.display='none'">
+                <div class="poster-rank">#${i + 1}</div>
+                <div class="poster-rating">★ ${m.rating}</div>
+                <div class="poster-overlay">
+                    <div class="play-icon">▶</div>
+                </div>
+            </div>
+            <div class="movie-info">
+                <div class="movie-title">${m.title}</div>
+                <div class="movie-year">${m.year} · ${m.duration}</div>
+                <div class="movie-genres">
+                    ${m.genres.slice(0,2).map(g => `<span class="genre-tag">${g}</span>`).join('')}
+                </div>
+            </div>
+        </a>
+    `).join('');
+}
+
+// ── Render Recent Row ──
+function renderRecent() {
+    const row = document.getElementById('recentRow');
+    const recent = [...MOVIES].sort(() => Math.random() - 0.5).slice(0, 8);
+    row.innerHTML = recent.map(m => `
+        <a class="movie-card" href="#" onclick="goToMovie(${m.id}); return false;">
+            <div class="movie-poster">
+                <img src="${m.poster}" alt="${m.title}" loading="lazy"
+                     onerror="this.style.display='none'">
+                <div class="poster-rating">★ ${m.rating}</div>
+                <div class="poster-overlay">
+                    <div class="play-icon">▶</div>
+                </div>
+            </div>
+            <div class="movie-info">
+                <div class="movie-title">${m.title}</div>
+                <div class="movie-year">${m.year}</div>
+            </div>
+        </a>
+    `).join('');
+}
+
+renderGrid();
+renderRecent();
+</script>
+</body>
+</html>

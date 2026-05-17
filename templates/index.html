@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineAI — {{ movie.title }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-deep:   #060d1f;
+            --bg-mid:    #0d1b35;
+            --bg-card:   #0f2040;
+            --bg-panel:  #112347;
+            --gold:      #f5c518;
+            --blue:      #2979ff;
+            --red:       #e53935;
+            --text:      #eef2ff;
+            --sub:       #94a3b8;
+            --muted:     #4a5a7a;
+            --border:    rgba(255,255,255,0.07);
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 48px;
+            height: 64px;
+            background: rgba(6,13,31,0.88);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .nav-logo-icon {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, var(--blue), #7c3aed);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .nav-logo-text {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 22px;
+            letter-spacing: 2px;
+            color: var(--text);
+        }
+
+        .nav-logo-text span { color: var(--gold); }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .nav-username {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--sub);
+        }
+
+        .nav-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2979ff, #7c3aed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid rgba(229,57,53,0.5);
+            color: var(--red);
+            padding: 7px 18px;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(229,57,53,0.12);
+            border-color: var(--red);
+        }
+
+        /* ── HERO ── */
+        .hero {
+            position: relative;
+            width: 100%;
+            height: 340px;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.32) saturate(1.4);
+            transform: scale(1.05);
+            animation: heroZoom 18s ease-in-out infinite alternate;
+        }
+
+        @keyframes heroZoom {
+            from { transform: scale(1.05); }
+            to   { transform: scale(1.12); }
+        }
+
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                to right,
+                rgba(6,13,31,0.94) 0%,
+                rgba(6,13,31,0.55) 50%,
+                rgba(6,13,31,0.12) 100%
+            );
+        }
+
+        .hero-overlay-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 130px;
+            background: linear-gradient(to bottom, transparent, var(--bg-deep));
+        }
+
+        .hero-content {
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            gap: 32px;
+            padding: 0 48px 36px;
+            height: 100%;
+        }
+
+        .movie-poster {
+            flex-shrink: 0;
+            width: 140px;
+            height: 210px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.7),
+                        0 0 0 1px rgba(255,255,255,0.08);
+            transform: translateY(40px);
+            transition: transform 0.3s;
+        }
+
+        .movie-poster:hover { transform: translateY(36px) scale(1.02); }
+
+        .movie-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .movie-poster-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a2a4a, #2979ff22);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        .hero-meta { padding-bottom: 4px; }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--gold);
+            color: #000;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .hero-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(30px, 4.5vw, 52px);
+            letter-spacing: 2px;
+            line-height: 1;
+            margin-bottom: 14px;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+        }
+
+        .hero-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .hero-tag {
+            font-size: 13px;
+            color: var(--sub);
+        }
+
+        .hero-tag + .hero-tag::before {
+            content: ' · ';
+            color: var(--muted);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1.5px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.07);
+            color: white;
+            padding: 9px 20px;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            backdrop-filter: blur(8px);
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover { background: rgba(255,255,255,0.15); }
+
+        /* ── MAIN ── */
+        .main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 48px 60px;
+        }
+
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        /* ── INFO PANEL ── */
+        .info-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 18px;
+            color: var(--text);
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .info-grid { display: flex; flex-direction: column; gap: 14px; }
+
+        .info-row { display: flex; flex-direction: column; gap: 4px; }
+
+        .info-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .info-value { font-size: 14px; color: var(--sub); line-height: 1.5; }
+
+        .info-value strong { color: var(--text); font-weight: 500; }
+
+        .rating-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(245,197,24,0.12);
+            border: 1px solid rgba(245,197,24,0.3);
+            color: var(--gold);
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .genre-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+
+        .genre-tag {
+            background: rgba(41,121,255,0.12);
+            border: 1px solid rgba(41,121,255,0.25);
+            color: #7ba8ff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .rate-btn {
+            margin-top: auto;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #2979ff, #5c6bc0);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+            box-shadow: 0 6px 24px rgba(41,121,255,0.3);
+        }
+
+        .rate-btn:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 32px rgba(41,121,255,0.45);
+        }
+
+        .rate-btn:active { transform: translateY(0); }
+
+        /* ── REVIEWS PANEL ── */
+        .reviews-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .reviews-panel::-webkit-scrollbar { width: 5px; }
+        .reviews-panel::-webkit-scrollbar-track { background: transparent; }
+        .reviews-panel::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 99px; }
+
+        .reviews-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: -28px;
+            background: var(--bg-card);
+            z-index: 2;
+            margin: -28px -28px 0;
+            padding: 16px 28px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .reviews-header-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 18px;
+        }
+
+        .reviews-count {
+            font-size: 12px;
+            color: var(--muted);
+            background: var(--bg-panel);
+            padding: 3px 10px;
+            border-radius: 99px;
+        }
+
+        .review-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 18px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .review-card-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .reviewer-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2979ff, #7c3aed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .reviewer-name { font-size: 13px; font-weight: 600; color: var(--text); }
+
+        .review-date { font-size: 11px; color: var(--muted); margin-left: auto; }
+
+        .review-text {
+            font-size: 13.5px;
+            color: var(--sub);
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .review-footer { display: flex; align-items: center; gap: 10px; }
+
+        .sentiment-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .sentiment-badge.positive {
+            background: rgba(74,222,128,0.12);
+            border: 1px solid rgba(74,222,128,0.25);
+            color: #4ade80;
+        }
+
+        .sentiment-badge.negative {
+            background: rgba(248,113,113,0.12);
+            border: 1px solid rgba(248,113,113,0.25);
+            color: #f87171;
+        }
+
+        .score-badge { font-size: 12px; color: var(--muted); margin-left: auto; }
+        .score-badge span { color: var(--gold); font-weight: 700; }
+
+        .delete-btn {
+            background: transparent;
+            border: 1px solid rgba(229,57,53,0.4);
+            color: var(--red);
+            padding: 3px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 11px;
+            font-weight: 500;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .delete-btn:hover { background: rgba(229,57,53,0.12); }
+
+        /* ── MODAL ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(6px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            width: 90%;
+            max-width: 520px;
+            animation: modalIn 0.25s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95) translateY(12px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 22px;
+            margin-bottom: 6px;
+        }
+
+        .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+
+        .modal-textarea {
+            width: 100%;
+            height: 130px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .modal-textarea:focus { border-color: var(--blue); }
+        .modal-textarea::placeholder { color: var(--muted); }
+
+        .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+
+        .modal-cancel {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--sub);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .modal-cancel:hover { background: var(--bg-panel); }
+
+        .modal-submit {
+            flex: 2;
+            padding: 12px;
+            background: linear-gradient(135deg, #2979ff, #5c6bc0);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 18px rgba(41,121,255,0.3);
+            transition: opacity 0.2s;
+        }
+
+        .modal-submit:hover { opacity: 0.88; }
+
+        .modal-result {
+            margin-top: 14px;
+            padding: 12px 16px;
+            background: var(--bg-panel);
+            border-radius: 10px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .modal-result.show { display: block; }
+
+        .loader {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); }
+        .empty-state-icon { font-size: 36px; margin-bottom: 10px; }
+        .empty-state p { font-size: 14px; }
+
+        @media (max-width: 768px) {
+            nav { padding: 0 20px; }
+            .hero-content { padding: 0 20px 36px; gap: 20px; }
+            .movie-poster { width: 100px; height: 150px; }
+            .main { padding: 24px 20px 48px; }
+            .bottom-grid { grid-template-columns: 1fr; }
+            .reviews-panel { max-height: 420px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAV -->
+    <nav>
+        <a href="/" class="nav-logo">
+            <div class="nav-logo-icon">🎬</div>
+            <span class="nav-logo-text">CINE<span>AI</span></span>
+        </a>
+        <div class="nav-right">
+            <div class="nav-username">
+                <div class="nav-avatar" id="navAvatar">
+                    {{ session['user'][0] | upper }}
+                </div>
+                <span id="navUsername">{{ session.get('user', 'Guest') }}</span>
+            </div>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <div class="hero">
+        <div class="hero-bg"
+             style="background-image: url('{{ movie.poster }}');">
+        </div>
+        <div class="hero-overlay"></div>
+        <div class="hero-overlay-bottom"></div>
+        <div class="hero-content">
+
+            <div class="movie-poster">
+                {% if movie.poster %}
+                    <img src="{{ movie.poster }}"
+                         alt="{{ movie.title }}"
+                         onerror="this.parentElement.innerHTML='<div class=movie-poster-placeholder>🎥</div>'">
+                {% else %}
+                    <div class="movie-poster-placeholder">🎥</div>
+                {% endif %}
+            </div>
+
+            <div class="hero-meta">
+                <div class="hero-badge">⭐ IMDb</div>
+                <div class="hero-title">{{ movie.title }}</div>
+                <div class="hero-tags">
+                    <span class="hero-tag">★ {{ movie.rating }} / 10</span>
+                    <span class="hero-tag">⏱ {{ movie.duration }}</span>
+                    <span class="hero-tag">{{ movie.year }}</span>
+                    <span class="hero-tag">{{ movie.genres | join(' · ') }}</span>
+                </div>
+                <a href="/" class="back-btn">← Back to Films</a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+        <div class="bottom-grid">
+
+            <!-- LEFT: Film Info -->
+            <div class="info-panel">
+                <div class="panel-title">Film Information</div>
+
+                <div class="info-grid">
+
+                    <div class="info-row">
+                        <span class="info-label">Title</span>
+                        <span class="info-value">
+                            <strong>{{ movie.title }}</strong>
+                        </span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Duration</span>
+                        <span class="info-value">{{ movie.duration }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Director</span>
+                        <span class="info-value">
+                            <strong>{{ movie.director }}</strong>
+                        </span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Cast</span>
+                        <span class="info-value">{{ movie.cast }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Genre</span>
+                        <div class="genre-tags">
+                            {% for g in movie.genres %}
+                                <span class="genre-tag">{{ g }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">IMDb Rating</span>
+                        <span class="rating-badge">⭐ {{ movie.rating }} / 10</span>
+                    </div>
+
+                    {% if movie.plot %}
+                    <div class="info-row">
+                        <span class="info-label">Plot</span>
+                        <span class="info-value">{{ movie.plot }}</span>
+                    </div>
+                    {% endif %}
+
+                </div>
+
+                <button class="rate-btn" onclick="openModal()">
+                    ✍️ &nbsp; Rate This Film
+                </button>
+            </div>
+
+            <!-- RIGHT: Reviews -->
+            <div class="reviews-panel">
+                <div class="reviews-header">
+                    <span class="reviews-header-title">User Reviews</span>
+                    <span class="reviews-count" id="reviewCount">0 reviews</span>
+                </div>
+                <div id="reviewsList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💬</div>
+                        <p>No reviews yet. Be the first to rate!</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+        <div class="modal">
+            <div class="modal-title">Rate "{{ movie.title }}"</div>
+            <div class="modal-sub">Share your thoughts — our AI will analyze the sentiment</div>
+
+            <textarea
+                class="modal-textarea"
+                id="reviewInput"
+                placeholder="Write your review here… What did you think of the film?"
+            ></textarea>
+
+            <div class="modal-result" id="modalResult"></div>
+
+            <div class="modal-actions">
+                <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+                <button class="modal-submit" id="submitBtn" onclick="analyzeReview()">
+                    Analyze & Submit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        // ── STATE ──
+        let reviews = [];
+
+        // ── HELPERS ──
+        function escHtml(s) {
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function fmtDate(iso) {
+            if (!iso) return 'Today';
+            const d = new Date(iso);
+            return isNaN(d)
+                ? iso
+                : d.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day:   'numeric',
+                    year:  'numeric'
+                  });
+        }
+
+        // ── RENDER REVIEWS ──
+        function renderReviews() {
+            const list  = document.getElementById('reviewsList');
+            const count = document.getElementById('reviewCount');
+
+            count.textContent =
+                reviews.length + ' review' + (reviews.length !== 1 ? 's' : '');
+
+            if (reviews.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💬</div>
+                        <p>No reviews yet. Be the first to rate!</p>
+                    </div>`;
+                return;
+            }
+
+            list.innerHTML = reviews.map(r => {
+                const isPos = r.sentiment === 'Positive';
+                const name  = r.username || 'User';
+                const text  = r.review   || '';
+                const isOwner = name === currentUser;
+
+                return `
+                <div class="review-card" id="card-${r._id}">
+                    <div class="review-card-top">
+                        <div class="reviewer-avatar">${name.charAt(0).toUpperCase()}</div>
+                        <span class="reviewer-name">${escHtml(name)}</span>
+                        <span class="review-date">${fmtDate(r.created_at)}</span>
+                    </div>
+                    <p class="review-text">${escHtml(text)}</p>
+                    <div class="review-footer">
+                        <span class="sentiment-badge ${isPos ? 'positive' : 'negative'}">
+                            ${isPos ? '😊 Positive' : '😞 Negative'}
+                        </span>
+                        <span class="score-badge">
+                            Score: <span>${r.score}/10</span>
+                        </span>
+                        ${isOwner
+                            ? `<button class="delete-btn"
+                                onclick="deleteReview('${r._id}')">
+                                🗑 Delete
+                               </button>`
+                            : ''
+                        }
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ── LOAD REVIEWS (lọc theo movie_id) ──
+        async function loadReviews() {
+            document.getElementById('reviewsList').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon" style="font-size:22px">⏳</div>
+                    <p>Loading reviews…</p>
+                </div>`;
+            try {
+                const res  = await fetch('/reviews?movie_id=' + MOVIE_ID);
+                const data = await res.json();
+                reviews = Array.isArray(data) ? data : [];
+            } catch (e) {
+                reviews = [];
+                console.warn('Could not load reviews:', e);
+            }
+            renderReviews();
+        }
+
+        // ── DELETE REVIEW ──
+        async function deleteReview(id) {
+            if (!confirm('Delete this review?')) return;
+            try {
+                const res  = await fetch('/delete-review/' + id, { method: 'DELETE' });
+                const data = await res.json();
+                if (res.ok) {
+                    reviews = reviews.filter(r => r._id !== id);
+                    renderReviews();
+                } else {
+                    alert(data.error || 'Delete failed');
+                }
+            } catch (err) {
+                alert('Server error');
+            }
+        }
+
+        // ── MODAL ──
+        function openModal() {
+            document.getElementById('modalOverlay').classList.add('open');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('open');
+            document.getElementById('reviewInput').value = '';
+            const r = document.getElementById('modalResult');
+            r.classList.remove('show');
+            r.innerHTML = '';
+        }
+
+        function handleOverlayClick(e) {
+            if (e.target === document.getElementById('modalOverlay')) closeModal();
+        }
+
+        // ── ANALYZE & SUBMIT ──
+        async function analyzeReview() {
+            const reviewText = document.getElementById('reviewInput').value.trim();
+            if (!reviewText) return;
+
+            const btn    = document.getElementById('submitBtn');
+            const result = document.getElementById('modalResult');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loader"></span> Analyzing…';
+            result.classList.remove('show');
+
+            try {
+                const response = await fetch('/predict', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({
+                        review:   reviewText,
+                        movie_id: MOVIE_ID        // ← gửi movie_id để backend lưu đúng phim
+                    })
+                });
+
+                const data  = await response.json();
+                const isPos = data.sentiment === 'Positive';
+
+                result.innerHTML = `
+                    Sentiment:
+                    <strong style="color:${isPos ? '#4ade80' : '#f87171'}">
+                        ${data.sentiment}
+                    </strong>
+                    &nbsp;·&nbsp;
+                    Score:
+                    <strong style="color:var(--gold)">
+                        ${data.score}/10
+                    </strong>`;
+                result.classList.add('show');
+
+                // reload reviews từ DB
+                await loadReviews();
+
+                setTimeout(() => closeModal(), 1500);
+
+            } catch (err) {
+                result.innerHTML = `<span style="color:#f87171">⚠ Could not connect to server.</span>`;
+                result.classList.add('show');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = 'Analyze & Submit';
+        }
+
+        // ── INIT ──
+        
+    </script>
+    <div id="movieData"
+        data-movie-id="{{ movie.id }}"
+        data-username="{{ session.get('user', 'Guest') }}"
+        style="display:none">
+    </div>
+
+    <script>
+        const el          = document.getElementById('movieData');
+        const MOVIE_ID    = parseInt(el.dataset.movieId)  || 0;
+        const currentUser = el.dataset.username            || '';
+        loadReviews();
+    </script>
+</body>
+</html>
